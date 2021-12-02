@@ -22,21 +22,24 @@ def ge(mat, v):
                 pivot_row_multiple = [pv * factor for pv in mat[j]]
                 mat[i] = [rv - prmv for rv, prmv in zip(mat[i], pivot_row_multiple)]
 
-    # extract solution vector from ref augmented matrix
-    x = []
-    for i in range(len(mat)):
-        # if there is a zero row with non-zero augmented value, there is no solution
-        if all([v == 0 for v in mat[i][:-1]]) and mat[i][-1] != 0:
-            return []
+    try:
+        # extract solution vector from ref augmented matrix
+        x = []
+        for i in range(len(mat)):
+            # if there is a zero row with non-zero augmented value, there is no solution
+            if all([v == 0 for v in mat[i][:-1]]) and mat[i][-1] != 0:
+                return []
 
-        coeff = mat[i][i]
-        curr_x = mat[i][n] / coeff
-        for j, v in enumerate(mat[i][:-1]):
-            if v != 0 and j != i:
-                val_str = f' + {-v/coeff} x_{j+1}'
-                curr_x = str(curr_x) + val_str
-        x.append(curr_x)
-    return x
+            coeff = mat[i][i]
+            curr_x = mat[i][n] / coeff
+            for j, v in enumerate(mat[i][:-1]):
+                if v != 0 and j != i:
+                    val_str = f' + {-v/coeff} x_{j+1}'
+                    curr_x = str(curr_x) + val_str
+            x.append(curr_x)
+        return x
+    except ZeroDivisionError:
+        raise ValueError('Invalid augmented matrix (divide by zero).')
 
 
 def augment(mat, v):
