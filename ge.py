@@ -1,3 +1,9 @@
+# ge.py
+# -----
+# Gaussian Elimination in Python
+# MATH 544 Final Project - Andrew Eldridge, Laura Witzel
+
+
 def ge(mat, v):
     # validate dimensions
     m = len(mat)
@@ -53,7 +59,7 @@ def main():
     print('-----\nGaussian elimination in Python - Andrew Eldridge, Laura Witzel\nType "exit" at any point to quit.\n-----')
     while True:
         # get matrix
-        usr_in = input('Enter a semicolon-delimited matrix (a11 a12; a21 a22): ')
+        usr_in = input('Enter a matrix with semicolon-delimited rows and space-delimited columns (a11 a12; a21 a22): ')
         if usr_in == 'exit':
             print('Goodbye!')
             exit(0)
@@ -79,11 +85,11 @@ def main():
             # perform gaussian elimination
             x = ge(mat, v)
             if len(x) > 0:
-                print(f'-----\nx = {x}\n-----')
+                print(f'-----\nx = {x}\n-----\n')
             else:
                 print('No solution.')
         except ValueError as e:
-            print(e)
+            print(f'{e}\n')
             continue
 
 
