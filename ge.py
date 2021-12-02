@@ -35,6 +35,7 @@ def ge(mat, v):
             for j, v in enumerate(mat[i][:-1]):
                 if v != 0 and j != i:
                     val_str = f' + {-v/coeff} x_{j+1}'
+                    val_str = val_str.replace('+ -', '- ')
                     curr_x = str(curr_x) + val_str
             x.append(curr_x)
         return x
