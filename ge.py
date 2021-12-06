@@ -18,7 +18,9 @@ def ge(mat, v):
     mat = augment(mat, v)
 
     # apply row permutations
+    print(mat)
     mat = permute(mat)
+    print(mat)
 
     # iteratively perform gaussian elimination
     for j in range(n):
@@ -34,12 +36,17 @@ def ge(mat, v):
                 mat[i] = [rv - prmv for rv, prmv in zip(mat[i], pivot_row_multiple)]
 
     try:
+        print(mat)
         # extract solution vector from ref augmented matrix
         x = []
         for i in range(len(mat)):
-            # if there is a zero row with non-zero augmented value, there is no solution
-            if all([v == 0 for v in mat[i][:-1]]) and mat[i][-1] != 0:
-                return []
+            if all([v == 0 for v in mat[i][:-1]]):
+                # if there is a zero row with non-zero augmented value, there is no solution
+                if mat[i][-1] != 0:
+                    return []
+                # if there is a zero row with zero augmented value, that variable is free (infinite solutions)
+                x.append(f'x_{i+1}')
+                continue
 
             coeff = mat[i][i]
             curr_x = mat[i][n] / coeff
