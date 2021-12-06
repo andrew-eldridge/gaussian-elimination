@@ -3,6 +3,8 @@
 # Gaussian Elimination in Python
 # MATH 544 Final Project - Andrew Eldridge, Laura Witzel
 
+import numpy as np
+
 
 def ge(mat, v):
     # validate dimensions
@@ -14,6 +16,9 @@ def ge(mat, v):
 
     # augment matrix
     mat = augment(mat, v)
+
+    # apply row permutations
+    mat = permute(mat)
 
     # iteratively perform gaussian elimination
     for j in range(n):
@@ -47,6 +52,30 @@ def ge(mat, v):
         return x
     except ZeroDivisionError:
         raise ValueError('Invalid augmented matrix (divide by zero).')
+
+
+def permute(mat):
+    for i in range(len(mat)):
+        if mat[i][i] == 0:
+            for j in range(i+1, len(mat)):
+                if mat[i][j] != 0:
+                    return permute(np.matmul(permutation(len(mat), i, j), mat))
+    return mat
+
+
+def permutation(n, i, j):
+    P = identity(n)
+    temp = P[i]
+    P[i] = P[j]
+    P[j] = temp
+    return P
+
+
+def identity(n):
+    I = []
+    for i in range(n):
+        I.append([1 if i == j else 0 for j in range(n)])
+    return I
 
 
 def augment(mat, v):
