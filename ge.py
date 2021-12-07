@@ -18,17 +18,42 @@ def ge(mat, v):
     mat = augment(mat, v)
 
     # apply row permutations
-    print(mat)
-    mat = permute(mat)
-    print(mat)
+    mat = apply_permutations(mat)
 
-    # iteratively perform gaussian elimination
+    # eliminate below the diagonal
     for j in range(n):
-        for i in range(m):
-            # diagonal values and free variables don't need to be eliminated
-            if i == j or j > m-1 or mat[j][j] == 0:
+        # if free variable, can't eliminate column
+        if j > m - 1:
+            continue
+        if mat[j][j] == 0:
+            swap_row_index = nonzero_below_row_index(mat, j, j)
+            if swap_row_index != -1:
+                mat = permute(mat, j, swap_row_index)
+            else:
                 continue
-            # if a non-diagonal value is non-zero, eliminate using row operations
+
+        for i in range(j+1, m):
+            # if value is non-zero, eliminate using row operations
+            if v != 0:
+                # get a constant multiple of the pivot row for current column, update current row
+                factor = mat[i][j] / mat[j][j]
+                pivot_row_multiple = [pv * factor for pv in mat[j]]
+                mat[i] = [rv - prmv for rv, prmv in zip(mat[i], pivot_row_multiple)]
+
+    # eliminate above the diagonal
+    for j in range(n):
+        # if free variable, can't eliminate column
+        if j > m - 1:
+            continue
+        if mat[j][j] == 0:
+            swap_row_index = nonzero_below_row_index(mat, j, j)
+            if swap_row_index != -1:
+                mat = permute(mat, j, swap_row_index)
+            else:
+                continue
+
+        for i in range(j):
+            # if value is non-zero, eliminate using row operations
             if v != 0:
                 # get a constant multiple of the pivot row for current column, update current row
                 factor = mat[i][j] / mat[j][j]
@@ -36,10 +61,9 @@ def ge(mat, v):
                 mat[i] = [rv - prmv for rv, prmv in zip(mat[i], pivot_row_multiple)]
 
     try:
-        print(mat)
         # extract solution vector from ref augmented matrix
         x = []
-        for i in range(len(mat)):
+        for i in range(m):
             if all([v == 0 for v in mat[i][:-1]]):
                 # if there is a zero row with non-zero augmented value, there is no solution
                 if mat[i][-1] != 0:
@@ -49,27 +73,53 @@ def ge(mat, v):
                 continue
 
             coeff = mat[i][i]
+            coeff_col = i
+            while coeff == 0:
+                x.append(f'x_{coeff_col+1}')
+                coeff_col += 1
+                if coeff_col == len(mat[i]):
+                    continue
+                coeff = mat[i][coeff_col]
+
             curr_x = mat[i][n] / coeff
             for j, v in enumerate(mat[i][:-1]):
-                if v != 0 and j != i:
+                if v != 0 and j != coeff_col:
                     val_str = f' + {-v/coeff} x_{j+1}'
                     val_str = val_str.replace('+ -', '- ')
                     curr_x = str(curr_x) + val_str
             x.append(curr_x)
+
+        while len(x) < n:
+            x.append(f'x_{len(x)+1}')
         return x
     except ZeroDivisionError:
         raise ValueError('Invalid augmented matrix (divide by zero).')
 
 
-def permute(mat):
+# returns the index of the first row (ind) below row (i) in column (j) with non-zero mat_{ind,j}
+def nonzero_below_row_index(mat, i, j):
+    for ind in range(i+1, len(mat)):
+        if mat[ind][j] != 0:
+            return ind
+    return -1
+
+
+# applies permutation transformations to a matrix to get non-zero values on the diagonal
+def apply_permutations(mat):
     for i in range(len(mat)):
         if mat[i][i] == 0:
             for j in range(i+1, len(mat)):
-                if mat[i][j] != 0:
-                    return permute(np.matmul(permutation(len(mat), i, j), mat))
+                if mat[j][i] != 0:
+                    return apply_permutations(permute(mat, i, j))
     return mat
 
 
+# performs row permutation P(i,j) to mat
+def permute(mat, i, j):
+    return np.matmul(permutation(len(mat), i, j), mat)
+
+
+# defines row permutation P(i,j)_n
 def permutation(n, i, j):
     P = identity(n)
     temp = P[i]
@@ -78,6 +128,7 @@ def permutation(n, i, j):
     return P
 
 
+# defines identity matrix I_n
 def identity(n):
     I = []
     for i in range(n):
@@ -85,6 +136,7 @@ def identity(n):
     return I
 
 
+# augments mat with v
 def augment(mat, v):
     for i in range(len(mat)):
         mat[i].append(v[i])
@@ -120,10 +172,13 @@ def main():
 
             # perform gaussian elimination
             x = ge(mat, v)
+            print('-----')
             if len(x) > 0:
-                print(f'-----\nx = {x}\n-----\n')
+                for i, xi in enumerate(x):
+                    print(f'x_{i+1} = {xi}')
             else:
                 print('No solution.')
+            print('-----\n')
         except ValueError as e:
             print(f'{e}\n')
             continue
